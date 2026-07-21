@@ -1,0 +1,367 @@
+.overlay {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: flex;
+  justify-content: flex-end;
+  background: rgba(5, 6, 8, 0.58);
+}
+
+.sheet {
+  width: min(100%, 27rem);
+  height: 100%;
+  padding: 1.5rem;
+  overflow-y: auto;
+  color: var(--color-text);
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border-strong);
+  box-shadow: -1.5rem 0 4rem rgba(0, 0, 0, 0.28);
+}
+
+.header,
+.calendarTop {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--color-accent);
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.heading {
+  margin: 0;
+  font-size: 1.375rem;
+  font-weight: 650;
+  letter-spacing: -0.03em;
+}
+
+.closeButton,
+.deleteButton {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.closeButton:hover {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  border-color: var(--color-border);
+}
+
+.deleteButton {
+  color: #d98b9f;
+}
+
+.deleteButton:hover:not(:disabled) {
+  color: #f0a9b8;
+  background: rgba(215, 112, 145, 0.1);
+  border-color: rgba(215, 112, 145, 0.3);
+}
+
+.deleteButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.localNotice {
+  margin: 1.25rem 0;
+  padding: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+  background: var(--color-accent-soft);
+  border: 1px solid rgba(142, 156, 244, 0.2);
+  border-radius: 0.625rem;
+}
+
+.calendarList {
+  display: grid;
+  gap: 0.625rem;
+}
+
+.calendarRow {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  background: var(--color-surface-raised);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+}
+
+.calendarIdentity {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.visibilityControl {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  cursor: pointer;
+}
+
+.checkbox {
+  width: 0.875rem;
+  height: 0.875rem;
+  accent-color: var(--color-accent);
+}
+
+.checkbox:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.visibilityLabel {
+  white-space: nowrap;
+}
+
+.nameInput,
+.input {
+  width: 100%;
+  min-width: 0;
+  color: var(--color-text);
+  background: var(--color-input);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  outline: none;
+}
+
+.nameInput {
+  height: 2.125rem;
+  padding: 0 0.625rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.input {
+  height: 2.625rem;
+  padding: 0 0.75rem;
+}
+
+.nameInput:hover,
+.input:hover:not(:disabled) {
+  border-color: var(--color-border-strong);
+}
+
+.nameInput:focus,
+.input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.calendarMeta {
+  color: var(--color-text-subtle);
+  font-size: 0.6875rem;
+}
+
+.colorOptions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.colorButton {
+  width: 1.5rem;
+  height: 1.5rem;
+  padding: 0;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--color-border-strong);
+}
+
+.colorButton:hover:not(:disabled) {
+  transform: scale(1.08);
+}
+
+.colorButtonSelected {
+  border-color: var(--color-surface-raised);
+  box-shadow:
+    0 0 0 2px var(--color-text),
+    0 0 0 4px var(--color-surface-raised);
+}
+
+.colorperiwinkle {
+  background: #8e9cf4;
+}
+
+.colorteal {
+  background: #56beb0;
+}
+
+.colorrose {
+  background: #d77091;
+}
+
+.coloramber {
+  background: #daa752;
+}
+
+.deleteConfirmation {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1rem;
+  padding: 1rem;
+  background: rgba(215, 112, 145, 0.08);
+  border: 1px solid rgba(215, 112, 145, 0.28);
+  border-radius: 0.75rem;
+}
+
+.deleteTitle {
+  margin: 0 0 0.25rem;
+  color: #f0a9b8;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.deleteDescription,
+.emptyCalendarMessage {
+  margin: 0;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 1.25rem;
+}
+
+.deleteChoices {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.deleteChoice {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.deleteChoice input {
+  accent-color: var(--color-accent);
+}
+
+.deleteActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.625rem;
+}
+
+.cancelDeleteButton,
+.confirmDeleteButton,
+.createButton {
+  height: 2.375rem;
+  padding: 0 0.875rem;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  border-radius: 0.625rem;
+  cursor: pointer;
+}
+
+.cancelDeleteButton {
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid var(--color-border);
+}
+
+.confirmDeleteButton {
+  color: #160d10;
+  background: #d77091;
+  border: 1px solid #d77091;
+}
+
+.confirmDeleteButton:hover:not(:disabled) {
+  background: #e084a1;
+}
+
+.cancelDeleteButton:disabled,
+.confirmDeleteButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.createForm {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.createHeading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--color-text);
+}
+
+.createHeading h3 {
+  margin: 0;
+  font-size: 0.875rem;
+  font-weight: 650;
+}
+
+.field {
+  display: grid;
+  gap: 0.4375rem;
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.colorFieldset {
+  display: grid;
+  gap: 0.625rem;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+}
+
+.createButton {
+  width: fit-content;
+  color: var(--color-accent-contrast);
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+
+.createButton:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.createButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.error {
+  margin: 1rem 0 0;
+  padding: 0.625rem 0.75rem;
+  color: #f0a9b8;
+  font-size: 0.75rem;
+  background: rgba(215, 112, 145, 0.1);
+  border: 1px solid rgba(215, 112, 145, 0.28);
+  border-radius: 0.625rem;
+}
