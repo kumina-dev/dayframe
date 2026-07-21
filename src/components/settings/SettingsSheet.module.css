@@ -71,9 +71,19 @@
   border-radius: 0.625rem;
 }
 
+.sections {
+  display: grid;
+  gap: 2rem;
+}
+
 .section {
   display: grid;
   gap: 1.25rem;
+}
+
+.section + .section {
+  padding-top: 1.75rem;
+  border-top: 1px solid var(--color-border);
 }
 
 .sectionHeading {
@@ -124,6 +134,10 @@
   background: var(--color-input);
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
+}
+
+.segmentedControlTwo {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .segmentButton {
@@ -255,6 +269,105 @@
   background: var(--color-accent);
   border: 0;
   border-radius: 0.5rem;
+}
+
+.input {
+  width: 100%;
+  min-width: 0;
+  height: 2.5rem;
+  padding: 0 0.75rem;
+  color: var(--color-text);
+  font: inherit;
+  font-size: 0.8125rem;
+  background: var(--color-input);
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+  outline: none;
+}
+
+.input:hover {
+  border-color: var(--color-border-strong);
+}
+
+.input:focus {
+  border-color: var(--color-accent);
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.hint {
+  color: var(--color-text-subtle);
+  font-size: 0.6875rem;
+  line-height: 1.05rem;
+}
+
+.toggleSetting {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+}
+
+.toggleSetting > span:first-child {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.toggleSetting strong {
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.toggleSetting small {
+  color: var(--color-text-subtle);
+  font-size: 0.6875rem;
+}
+
+.toggleSetting input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+
+.toggleTrack {
+  display: flex;
+  width: 2.25rem;
+  height: 1.25rem;
+  align-items: center;
+  padding: 0.125rem;
+  background: var(--color-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 999px;
+  transition:
+    background-color 120ms ease,
+    border-color 120ms ease;
+}
+
+.toggleThumb {
+  width: 0.875rem;
+  height: 0.875rem;
+  background: var(--color-text-muted);
+  border-radius: 999px;
+  transition:
+    background-color 120ms ease,
+    transform 120ms ease;
+}
+
+.toggleSetting input:checked + .toggleTrack {
+  background: var(--color-accent-soft);
+  border-color: var(--color-accent);
+}
+
+.toggleSetting input:checked + .toggleTrack .toggleThumb {
+  background: var(--color-accent);
+  transform: translateX(1rem);
+}
+
+.toggleSetting input:focus-visible + .toggleTrack {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
 }
 
 .error {

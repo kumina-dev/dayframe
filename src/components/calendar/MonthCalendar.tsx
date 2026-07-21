@@ -1,8 +1,10 @@
 import {
+  addDays,
   eachDayOfInterval,
   endOfMonth,
   endOfWeek,
   format,
+  getISOWeek,
   isSameMonth,
   isToday,
   isWeekend,
@@ -17,18 +19,24 @@ import {
   getCalendarEventTimeLabel,
 } from '../../lib/calendarEvents'
 import type {
+  CalendarDensity,
   CalendarEvent,
   CalendarEventColor,
   LocalCalendar,
+  TimeFormat,
 } from '../../types/calendar'
 
 import styles from './MonthCalendar.module.css'
 
 interface MonthCalendarProps {
   calendars: LocalCalendar[]
+  density: CalendarDensity
   displayTimeZone: string
   events: CalendarEvent[]
+  showWeekNumbers: boolean
+  timeFormat: TimeFormat
   visibleMonth: Date
+  weekStartsOn: 0 | 1
   onCreateEvent: (date: string) => void
   onSelectEvent: (eventId: string) => void
 }
@@ -39,17 +47,26 @@ interface DisplayEvent {
   time?: string
 }
 
-const weekdayLabels = [
-  'Monday',
-  'Tuesday',
-  'Wednesday',
-  'Thursday',
-  'Friday',
-  'Saturday',
-  'Sunday',
-]
-
-const maximumVisibleEvents = 3
+const weekdayLabels = {
+  0: [
+    'Sunday',
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+  ],
+  1: [
+    'Monday',
+    'Tuesday',
+    'Wednesday',
+    'Thursday',
+    'Friday',
+    'Saturday',
+    'Sunday',
+  ],
+} as const
 
 const eventColorClasses: Record<CalendarEventColor, string> = {
   periwinkle: styles.eventPeriwinkle,
@@ -60,26 +77,36 @@ const eventColorClasses: Record<CalendarEventColor, string> = {
 
 export function MonthCalendar({
   calendars,
+  density,
   displayTimeZone,
   events,
+  showWeekNumbers,
+  timeFormat,
   visibleMonth,
+  weekStartsOn,
   onCreateEvent,
   onSelectEvent,
 }: MonthCalendarProps) {
-  const days = useMemo(() => {
+  const weeks = useMemo(() => {
     const firstDay = startOfWeek(startOfMonth(visibleMonth), {
-      weekStartsOn: 1,
+      weekStartsOn,
     })
 
     const lastDay = endOfWeek(endOfMonth(visibleMonth), {
-      weekStartsOn: 1,
+      weekStartsOn,
     })
 
-    return eachDayOfInterval({
+    const days = eachDayOfInterval({
       start: firstDay,
       end: lastDay,
     })
-  }, [visibleMonth])
+
+    return Array.from(
+      { length: days.length / 7 },
+      (_, weekIndex) =>
+        days.slice(weekIndex * 7, weekIndex * 7 + 7),
+    )
+  }, [visibleMonth, weekStartsOn])
 
   const eventsByDate = useMemo(() => {
     const groupedEvents = new Map<string, DisplayEvent[]>()
@@ -113,6 +140,7 @@ export function MonthCalendar({
             event,
             dateKey,
             displayTimeZone,
+            timeFormat,
           ),
         })
 
@@ -152,18 +180,45 @@ export function MonthCalendar({
     }
 
     return groupedEvents
-  }, [calendars, displayTimeZone, events])
+  }, [calendars, displayTimeZone, events, timeFormat])
 
-  const weekCount = days.length / 7
+  const maximumVisibleEvents =
+    density === 'compact' ? 4 : 3
+
+  const calendarClasses = [
+    styles.calendar,
+    density === 'compact' ? styles.calendarCompact : '',
+  ]
+    .filter(Boolean)
+    .join(' ')
+
+  const columnTemplate = showWeekNumbers
+    ? '2.75rem repeat(7, minmax(0, 1fr))'
+    : 'repeat(7, minmax(0, 1fr))'
 
   return (
     <section
-      className={styles.calendar}
+      className={calendarClasses}
       aria-label={format(visibleMonth, 'MMMM yyyy')}
     >
-      <div className={styles.weekdays} aria-hidden="true">
-        {weekdayLabels.map((weekday) => (
-          <div className={styles.weekday} key={weekday}>
+      <div
+        className={styles.weekdays}
+        style={{ gridTemplateColumns: columnTemplate }}
+        aria-hidden="true"
+      >
+        {showWeekNumbers ? (
+          <div className={styles.weekNumberHeading}>Wk</div>
+        ) : null}
+
+        {weekdayLabels[weekStartsOn].map((weekday) => (
+          <div
+            className={`${styles.weekday} ${
+              weekday === 'Saturday' || weekday === 'Sunday'
+                ? styles.weekdayWeekend
+                : ''
+            }`}
+            key={weekday}
+          >
             {weekday}
           </div>
         ))}
@@ -172,107 +227,132 @@ export function MonthCalendar({
       <div
         className={styles.monthGrid}
         style={{
-          gridTemplateRows: `repeat(${weekCount}, minmax(0, 1fr))`,
+          gridTemplateRows: `repeat(${weeks.length}, minmax(0, 1fr))`,
         }}
       >
-        {days.map((date) => {
-          const dateKey = format(date, 'yyyy-MM-dd')
-          const dateEvents = eventsByDate.get(dateKey) ?? []
-
-          const visibleEvents = dateEvents.slice(
-            0,
-            maximumVisibleEvents,
-          )
-
-          const hiddenEventCount =
-            dateEvents.length - visibleEvents.length
-
-          const dayClasses = [
-            styles.day,
-            !isSameMonth(date, visibleMonth)
-              ? styles.dayOutsideMonth
-              : '',
-            isWeekend(date) ? styles.weekend : '',
-            isToday(date) ? styles.today : '',
-          ]
-            .filter(Boolean)
-            .join(' ')
-
-          const createEventLabel = `Add event on ${format(
-            date,
-            'EEEE, MMMM d',
-          )}`
+        {weeks.map((week) => {
+          const weekKey = format(week[0], 'yyyy-MM-dd')
+          const isoWeekDate =
+            weekStartsOn === 0 ? addDays(week[0], 1) : week[0]
 
           return (
-            <div className={dayClasses} key={dateKey}>
-              <div className={styles.dayHeader}>
-                <button
-                  className={styles.dateButton}
-                  type="button"
-                  aria-label={createEventLabel}
-                  onClick={() => onCreateEvent(dateKey)}
+            <div
+              className={styles.weekRow}
+              style={{ gridTemplateColumns: columnTemplate }}
+              key={weekKey}
+            >
+              {showWeekNumbers ? (
+                <div
+                  className={styles.weekNumber}
+                  aria-label={`Week ${getISOWeek(isoWeekDate)}`}
                 >
-                  <time
-                    className={styles.dateNumber}
-                    dateTime={dateKey}
-                    aria-current={
-                      isToday(date) ? 'date' : undefined
-                    }
-                  >
-                    {format(date, 'd')}
-                  </time>
-                </button>
+                  {getISOWeek(isoWeekDate)}
+                </div>
+              ) : null}
 
-                <button
-                  className={styles.addButton}
-                  type="button"
-                  aria-label={createEventLabel}
-                  title="Add event"
-                  onClick={() => onCreateEvent(dateKey)}
-                >
-                  <Plus size={13} strokeWidth={2} />
-                </button>
-              </div>
+              {week.map((date) => {
+                const dateKey = format(date, 'yyyy-MM-dd')
+                const dateEvents =
+                  eventsByDate.get(dateKey) ?? []
 
-              <div className={styles.events}>
-                {visibleEvents.map(
-                  ({ event, color, time }) => (
-                    <button
-                      className={`${styles.event} ${
-                        eventColorClasses[color]
-                      }`}
-                      type="button"
-                      key={event.id}
-                      aria-label={`Edit ${event.title}`}
-                      onClick={() =>
-                        onSelectEvent(event.id)
-                      }
-                    >
-                      {time ? (
-                        <span className={styles.eventTime}>
-                          {time}
+                const visibleEvents = dateEvents.slice(
+                  0,
+                  maximumVisibleEvents,
+                )
+
+                const hiddenEventCount =
+                  dateEvents.length - visibleEvents.length
+
+                const dayClasses = [
+                  styles.day,
+                  !isSameMonth(date, visibleMonth)
+                    ? styles.dayOutsideMonth
+                    : '',
+                  isWeekend(date) ? styles.weekend : '',
+                  isToday(date) ? styles.today : '',
+                ]
+                  .filter(Boolean)
+                  .join(' ')
+
+                const createEventLabel = `Add event on ${format(
+                  date,
+                  'EEEE, MMMM d',
+                )}`
+
+                return (
+                  <div className={dayClasses} key={dateKey}>
+                    <div className={styles.dayHeader}>
+                      <button
+                        className={styles.dateButton}
+                        type="button"
+                        aria-label={createEventLabel}
+                        onClick={() => onCreateEvent(dateKey)}
+                      >
+                        <time
+                          className={styles.dateNumber}
+                          dateTime={dateKey}
+                          aria-current={
+                            isToday(date) ? 'date' : undefined
+                          }
+                        >
+                          {format(date, 'd')}
+                        </time>
+                      </button>
+
+                      <button
+                        className={styles.addButton}
+                        type="button"
+                        aria-label={createEventLabel}
+                        title="Add event"
+                        onClick={() => onCreateEvent(dateKey)}
+                      >
+                        <Plus size={13} strokeWidth={2} />
+                      </button>
+                    </div>
+
+                    <div className={styles.events}>
+                      {visibleEvents.map(
+                        ({ event, color, time }) => (
+                          <button
+                            className={`${styles.event} ${
+                              eventColorClasses[color]
+                            }`}
+                            type="button"
+                            key={event.id}
+                            aria-label={`Edit ${event.title}`}
+                            onClick={() =>
+                              onSelectEvent(event.id)
+                            }
+                          >
+                            {time ? (
+                              <span className={styles.eventTime}>
+                                {time}
+                              </span>
+                            ) : null}
+
+                            <span className={styles.eventTitle}>
+                              {event.title}
+                            </span>
+                          </button>
+                        ),
+                      )}
+
+                      {hiddenEventCount > 0 ? (
+                        <span className={styles.overflow}>
+                          +{hiddenEventCount} more
                         </span>
                       ) : null}
+                    </div>
 
-                      <span className={styles.eventTitle}>
-                        {event.title}
-                      </span>
-                    </button>
-                  ))}
-
-                {hiddenEventCount > 0 ? (
-                  <span className={styles.overflow}>
-                    +{hiddenEventCount} more
-                  </span>
-                ) : null}
-              </div>
-
-              <button
-                className={styles.emptyArea}
-                type="button"
-                aria-label={createEventLabel}
-                onClick={() => onCreateEvent(dateKey)}
-              />
+                    <button
+                      className={styles.emptyArea}
+                      type="button"
+                      aria-label={createEventLabel}
+                      onClick={() => onCreateEvent(dateKey)}
+                    />
+                  </div>
+                )
+              })}
             </div>
           )
         })}

@@ -13,6 +13,7 @@ import type {
   CalendarEvent,
   CalendarEventDraft,
   LocalCalendar,
+  TimeFormat,
 } from '../types/calendar'
 
 interface CreateCalendarEventOptions {
@@ -266,6 +267,7 @@ export function getCalendarEventTimeLabel(
   event: CalendarEvent,
   dateKey: string,
   displayTimeZone: string,
+  timeFormat: TimeFormat = '24-hour',
 ) {
   if (event.allDay) {
     return undefined
@@ -284,6 +286,6 @@ export function getCalendarEventTimeLabel(
   return formatInTimeZone(
     event.startsAt,
     displayTimeZone,
-    'HH:mm',
+    timeFormat === '12-hour' ? 'h:mm a' : 'HH:mm',
   )
 }

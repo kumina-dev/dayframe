@@ -32,7 +32,7 @@ import {
 } from './db/dayframeDb'
 import {
   calendarEventToDraft,
-  createCalendarEventRecord
+  createCalendarEventRecord,
 } from './lib/calendarEvents'
 import { applyAppearanceSettings } from './lib/theme'
 import type {
@@ -372,12 +372,20 @@ export default function App() {
   const updateSettings = async (
     changes: DayframeSettingsUpdate,
   ) => {
-    await dayframeDb.settings.put({
-      ...settings,
-      ...changes,
-      id: settingsId,
-      updatedAt: new Date().toISOString(),
-    })
+    const updatedSettingsCount =
+      await dayframeDb.settings.update(settingsId, {
+        ...changes,
+        updatedAt: new Date().toISOString(),
+      })
+
+    if (updatedSettingsCount === 0) {
+      await dayframeDb.settings.put({
+        ...settings,
+        ...changes,
+        id: settingsId,
+        updatedAt: new Date().toISOString(),
+      })
+    }
   }
 
   const showCurrentMonth = () => {
@@ -476,9 +484,13 @@ export default function App() {
       <main className={styles.main}>
         <MonthCalendar
           calendars={calendars}
+          density={settings.density}
           displayTimeZone={settings.displayTimeZone}
           events={events}
+          showWeekNumbers={settings.showWeekNumbers}
+          timeFormat={settings.timeFormat}
           visibleMonth={visibleMonth}
+          weekStartsOn={settings.weekStartsOn}
           onCreateEvent={openCreateDialog}
           onSelectEvent={(eventId) =>
             setEditor({
@@ -500,6 +512,7 @@ export default function App() {
       />
 
       <SettingsSheet
+        calendars={calendars}
         open={settingsSheetOpen}
         settings={settings}
         onClose={() => setSettingsSheetOpen(false)}

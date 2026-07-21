@@ -11,11 +11,11 @@
 
 .weekdays {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
   border-bottom: 1px solid var(--color-border);
 }
 
-.weekday {
+.weekday,
+.weekNumberHeading {
   display: flex;
   align-items: center;
   padding: 0 0.75rem;
@@ -26,14 +26,42 @@
   text-transform: uppercase;
 }
 
-.weekday:nth-last-child(-n + 2) {
+.weekNumberHeading {
+  justify-content: center;
+  padding-inline: 0.25rem;
+  border-right: 1px solid var(--color-border);
+}
+
+.weekdayWeekend {
   color: var(--color-text-subtle);
 }
 
 .monthGrid {
   display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
   min-height: 0;
+}
+
+.weekRow {
+  display: grid;
+  min-height: 0;
+}
+
+.weekRow:not(:last-child) {
+  border-bottom: 1px solid var(--color-border);
+}
+
+.weekNumber {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 0.75rem;
+  color: var(--color-text-subtle);
+  font-size: 0.625rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  background: var(--color-outside-month);
+  border-right: 1px solid var(--color-border);
 }
 
 .day {
@@ -47,16 +75,11 @@
   color: var(--color-text);
   background: transparent;
   border-right: 1px solid var(--color-border);
-  border-bottom: 1px solid var(--color-border);
   transition: background-color 120ms ease;
 }
 
 .day:nth-child(7n) {
   border-right: 0;
-}
-
-.day:nth-last-child(-n + 7) {
-  border-bottom: 0;
 }
 
 .day:hover {
@@ -246,6 +269,44 @@
 
 .emptyArea:hover {
   background: rgba(255, 255, 255, 0.018);
+}
+
+.calendarCompact {
+  grid-template-rows: 2.375rem minmax(0, 1fr);
+}
+
+.calendarCompact .weekday,
+.calendarCompact .weekNumberHeading {
+  padding-inline: 0.5rem;
+  font-size: 0.625rem;
+}
+
+.calendarCompact .day {
+  gap: 0.1875rem;
+  padding: 0.3125rem;
+}
+
+.calendarCompact .dayHeader {
+  min-height: 1.5rem;
+}
+
+.calendarCompact .dateNumber {
+  width: 1.5rem;
+  height: 1.5rem;
+  font-size: 0.75rem;
+}
+
+.calendarCompact .events {
+  gap: 0.125rem;
+}
+
+.calendarCompact .event {
+  min-height: 1.25rem;
+  padding-block: 0.0625rem;
+}
+
+.calendarCompact .weekNumber {
+  padding-top: 0.5625rem;
 }
 
 @media (max-height: 760px) {
