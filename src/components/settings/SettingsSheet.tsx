@@ -9,7 +9,6 @@ import {
 } from 'lucide-react'
 import {
   type KeyboardEvent,
-  type MouseEvent,
   useEffect,
   useState,
 } from 'react'
@@ -24,8 +23,11 @@ import type {
   ThemePreference,
   TimeFormat,
 } from '../../types/calendar'
+import { ColorSwatch } from '../ui/ColorSwatch'
 
 import styles from './SettingsSheet.module.css'
+
+type SettingsSection = 'appearance' | 'calendar' | 'region'
 
 interface SettingsSheetProps {
   calendars: LocalCalendar[]
@@ -80,6 +82,32 @@ const densityOptions: Array<{
   { value: 'compact', label: 'Compact' },
 ]
 
+const settingsSections: Array<{
+  id: SettingsSection
+  label: string
+  description: string
+  icon: typeof Palette
+}> = [
+  {
+    id: 'appearance',
+    label: 'Appearance',
+    description: 'Theme and accent',
+    icon: Palette,
+  },
+  {
+    id: 'calendar',
+    label: 'Calendar',
+    description: 'Month and time display',
+    icon: CalendarClock,
+  },
+  {
+    id: 'region',
+    label: 'Language and region',
+    description: 'Timezone and locale',
+    icon: Globe2,
+  },
+]
+
 const commonTimeZones = [
   'UTC',
   'Europe/Helsinki',
@@ -103,6 +131,8 @@ export function SettingsSheet({
   onClose,
   onUpdate,
 }: SettingsSheetProps) {
+  const [activeSection, setActiveSection] =
+    useState<SettingsSection>('appearance')
   const [error, setError] = useState('')
 
   useEffect(() => {
@@ -167,365 +197,428 @@ export function SettingsSheet({
     }
   }
 
-  const handleOverlayMouseDown = (
-    event: MouseEvent<HTMLDivElement>,
-  ) => {
-    if (event.target === event.currentTarget) {
-      closeSettings()
-    }
-  }
-
   return (
-    <div
-      className={styles.overlay}
-      onMouseDown={handleOverlayMouseDown}
+    <aside
+      className={styles.settings}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="settings-title"
     >
-      <aside
-        className={styles.sheet}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="settings-sheet-title"
-      >
-        <header className={styles.header}>
-          <div>
-            <p className={styles.eyebrow}>Local preferences</p>
+      <header className={styles.header}>
+        <div>
+          <p className={styles.eyebrow}>Local preferences</p>
+          <h2 className={styles.heading} id="settings-title">
+            Settings
+          </h2>
+        </div>
 
-            <h2 className={styles.heading} id="settings-sheet-title">
-              Settings
-            </h2>
-          </div>
+        <button
+          className={styles.closeButton}
+          type="button"
+          aria-label="Close settings"
+          title="Close settings"
+          onClick={closeSettings}
+        >
+          <X size={19} strokeWidth={1.8} />
+        </button>
+      </header>
 
-          <button
-            className={styles.closeButton}
-            type="button"
-            aria-label="Close settings"
-            title="Close"
-            onClick={onClose}
+      <div className={styles.workspace}>
+        <div className={styles.sidebar}>
+          <nav
+            className={styles.navigation}
+            aria-label="Settings sections"
           >
-            <X size={18} strokeWidth={1.8} />
-          </button>
-        </header>
+            {settingsSections.map((section) => {
+              const Icon = section.icon
+              const isActive = activeSection === section.id
 
-        <p className={styles.localNotice}>
-          Preferences are stored only in this browser.
-        </p>
+              return (
+                <button
+                  className={`${styles.navigationButton} ${
+                    isActive ? styles.navigationButtonActive : ''
+                  }`}
+                  type="button"
+                  key={section.id}
+                  aria-current={isActive ? 'page' : undefined}
+                  onClick={() => {
+                    setError('')
+                    setActiveSection(section.id)
+                  }}
+                >
+                  <Icon size={17} strokeWidth={1.8} />
 
-        <div className={styles.sections}>
-          <section
-            className={styles.section}
-            aria-labelledby="appearance-heading"
-          >
-            <div className={styles.sectionHeading}>
-              <Palette size={17} strokeWidth={1.8} />
+                  <span>
+                    <strong>{section.label}</strong>
+                    <small>{section.description}</small>
+                  </span>
+                </button>
+              )
+            })}
+          </nav>
 
-              <div>
-                <h3 id="appearance-heading">Appearance</h3>
-                <p>Control the interface theme and accent.</p>
-              </div>
-            </div>
+          <p className={styles.localNotice}>
+            Settings are stored only in this browser.
+          </p>
+        </div>
 
-            <div className={styles.setting}>
-              <span className={styles.label}>Theme</span>
+        <main className={styles.content}>
+          <div className={styles.contentInner}>
+            {activeSection === 'appearance' ? (
+              <section
+                className={styles.section}
+                aria-labelledby="appearance-heading"
+              >
+                <div className={styles.sectionHeading}>
+                  <div className={styles.sectionIcon}>
+                    <Palette size={19} strokeWidth={1.8} />
+                  </div>
 
-              <div className={styles.segmentedControl}>
-                {themes.map((theme) => {
-                  const Icon = theme.icon
+                  <div>
+                    <h3 id="appearance-heading">Appearance</h3>
+                    <p>
+                      Set Dayframe's theme and interface accent.
+                    </p>
+                  </div>
+                </div>
 
-                  return (
-                    <button
-                      className={`${styles.segmentButton} ${
-                        settings.theme === theme.value
-                          ? styles.segmentButtonSelected
-                          : ''
-                      }`}
-                      type="button"
-                      key={theme.value}
-                      aria-pressed={
-                        settings.theme === theme.value
-                      }
-                      onClick={() =>
+                <div className={styles.cardGrid}>
+                  <div className={styles.settingCard}>
+                    <span className={styles.label}>Theme</span>
+
+                    <div className={styles.segmentedControl}>
+                      {themes.map((theme) => {
+                        const Icon = theme.icon
+
+                        return (
+                          <button
+                            className={`${styles.segmentButton} ${
+                              settings.theme === theme.value
+                                ? styles.segmentButtonSelected
+                                : ''
+                            }`}
+                            type="button"
+                            key={theme.value}
+                            aria-pressed={
+                              settings.theme === theme.value
+                            }
+                            onClick={() =>
+                              updateSettings({
+                                theme: theme.value,
+                              })
+                            }
+                          >
+                            <Icon size={15} strokeWidth={1.8} />
+                            {theme.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                  </div>
+
+                  <fieldset
+                    className={`${styles.settingCard} ${styles.cardWide}`}
+                  >
+                    <legend className={styles.label}>
+                      Accent color
+                    </legend>
+
+                    <div className={styles.accentOptions}>
+                      {accentPresets.map((accent) => (
+                        <ColorSwatch
+                          color={accent.value}
+                          label={accent.name}
+                          selected={
+                            settings.accentColor.toLowerCase() ===
+                            accent.value
+                          }
+                          size="medium"
+                          key={accent.value}
+                          onSelect={() =>
+                            updateSettings({
+                              accentColor: accent.value,
+                            })
+                          }
+                        />
+                      ))}
+
+                      <label
+                        className={styles.customColor}
+                        title="Choose a custom accent color"
+                      >
+                        <input
+                          type="color"
+                          value={
+                            isValidAccentColor(
+                              settings.accentColor,
+                            )
+                              ? settings.accentColor
+                              : '#8e9cf4'
+                          }
+                          aria-label="Custom accent color"
+                          onChange={(event) =>
+                            updateSettings({
+                              accentColor: event.target.value,
+                            })
+                          }
+                        />
+
+                        <span
+                          className={styles.customColorSwatch}
+                          style={{
+                            backgroundColor: settings.accentColor,
+                          }}
+                          aria-hidden="true"
+                        />
+                        <span>Custom</span>
+                      </label>
+                    </div>
+                  </fieldset>
+
+                  <div
+                    className={`${styles.preview} ${styles.cardWide}`}
+                  >
+                    <span className={styles.previewDot} />
+
+                    <div>
+                      <strong>Accent preview</strong>
+                      <span>{settings.accentColor}</span>
+                    </div>
+
+                    <button type="button">Example action</button>
+                  </div>
+                </div>
+              </section>
+            ) : null}
+
+            {activeSection === 'calendar' ? (
+              <section
+                className={styles.section}
+                aria-labelledby="calendar-settings-heading"
+              >
+                <div className={styles.sectionHeading}>
+                  <div className={styles.sectionIcon}>
+                    <CalendarClock size={19} strokeWidth={1.8} />
+                  </div>
+
+                  <div>
+                    <h3 id="calendar-settings-heading">Calendar</h3>
+                    <p>Choose how the month and its events appear.</p>
+                  </div>
+                </div>
+
+                <div className={styles.cardGrid}>
+                  <fieldset className={styles.settingCard}>
+                    <legend className={styles.label}>
+                      First day of the week
+                    </legend>
+
+                    <div
+                      className={`${styles.segmentedControl} ${styles.segmentedControlTwo}`}
+                    >
+                      {weekStartOptions.map((option) => (
+                        <button
+                          className={`${styles.segmentButton} ${
+                            settings.weekStartsOn === option.value
+                              ? styles.segmentButtonSelected
+                              : ''
+                          }`}
+                          type="button"
+                          key={option.value}
+                          aria-pressed={
+                            settings.weekStartsOn === option.value
+                          }
+                          onClick={() =>
+                            updateSettings({
+                              weekStartsOn: option.value,
+                            })
+                          }
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  <fieldset className={styles.settingCard}>
+                    <legend className={styles.label}>
+                      Time format
+                    </legend>
+
+                    <div
+                      className={`${styles.segmentedControl} ${styles.segmentedControlTwo}`}
+                    >
+                      {timeFormatOptions.map((option) => (
+                        <button
+                          className={`${styles.segmentButton} ${
+                            settings.timeFormat === option.value
+                              ? styles.segmentButtonSelected
+                              : ''
+                          }`}
+                          type="button"
+                          key={option.value}
+                          aria-pressed={
+                            settings.timeFormat === option.value
+                          }
+                          onClick={() =>
+                            updateSettings({
+                              timeFormat: option.value,
+                            })
+                          }
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  <fieldset className={styles.settingCard}>
+                    <legend className={styles.label}>Density</legend>
+
+                    <div
+                      className={`${styles.segmentedControl} ${styles.segmentedControlTwo}`}
+                    >
+                      {densityOptions.map((option) => (
+                        <button
+                          className={`${styles.segmentButton} ${
+                            settings.density === option.value
+                              ? styles.segmentButtonSelected
+                              : ''
+                          }`}
+                          type="button"
+                          key={option.value}
+                          aria-pressed={
+                            settings.density === option.value
+                          }
+                          onClick={() =>
+                            updateSettings({
+                              density: option.value,
+                            })
+                          }
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  </fieldset>
+
+                  <div className={styles.settingCard}>
+                    <label className={styles.toggleSetting}>
+                      <span>
+                        <strong>Week numbers</strong>
+                        <small>Use ISO 8601 numbering.</small>
+                      </span>
+
+                      <input
+                        type="checkbox"
+                        checked={settings.showWeekNumbers}
+                        onChange={(event) =>
+                          updateSettings({
+                            showWeekNumbers: event.target.checked,
+                          })
+                        }
+                      />
+
+                      <span
+                        className={styles.toggleTrack}
+                        aria-hidden="true"
+                      >
+                        <span className={styles.toggleThumb} />
+                      </span>
+                    </label>
+                  </div>
+
+                  <label
+                    className={`${styles.settingCard} ${styles.cardWide}`}
+                  >
+                    <span className={styles.label}>
+                      Default calendar
+                    </span>
+
+                    <select
+                      className={styles.input}
+                      value={settings.defaultCalendarId}
+                      onChange={(event) =>
                         updateSettings({
-                          theme: theme.value,
+                          defaultCalendarId: event.target.value,
                         })
                       }
                     >
-                      <Icon size={15} strokeWidth={1.8} />
-                      {theme.label}
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
+                      {calendars.map((calendar) => (
+                        <option value={calendar.id} key={calendar.id}>
+                          {calendar.name}
+                        </option>
+                      ))}
+                    </select>
 
-            <fieldset className={styles.setting}>
-              <legend className={styles.label}>
-                Accent color
-              </legend>
+                    <span className={styles.hint}>
+                      Used by the global New event button.
+                    </span>
+                  </label>
+                </div>
+              </section>
+            ) : null}
 
-              <div className={styles.accentOptions}>
-                {accentPresets.map((accent) => (
-                  <button
-                    className={`${styles.accentButton} ${
-                      settings.accentColor.toLowerCase() ===
-                      accent.value
-                        ? styles.accentButtonSelected
-                        : ''
-                    }`}
-                    style={{
-                      backgroundColor: accent.value,
-                    }}
-                    type="button"
-                    key={accent.value}
-                    aria-label={accent.name}
-                    aria-pressed={
-                      settings.accentColor.toLowerCase() ===
-                      accent.value
-                    }
-                    title={accent.name}
-                    onClick={() =>
-                      updateSettings({
-                        accentColor: accent.value,
-                      })
-                    }
-                  />
-                ))}
-
-                <label
-                  className={styles.customColor}
-                  title="Custom accent color"
-                >
-                  <input
-                    type="color"
-                    value={
-                      isValidAccentColor(settings.accentColor)
-                        ? settings.accentColor
-                        : '#8e9cf4'
-                    }
-                    aria-label="Custom accent color"
-                    onChange={(event) =>
-                      updateSettings({
-                        accentColor: event.target.value,
-                      })
-                    }
-                  />
-
-                  <span>Custom</span>
-                </label>
-              </div>
-            </fieldset>
-
-            <div className={styles.preview}>
-              <span className={styles.previewDot} />
-
-              <div>
-                <strong>Accent preview</strong>
-                <span>{settings.accentColor}</span>
-              </div>
-
-              <button type="button">Example action</button>
-            </div>
-          </section>
-
-          <section
-            className={styles.section}
-            aria-labelledby="calendar-settings-heading"
-          >
-            <div className={styles.sectionHeading}>
-              <CalendarClock size={17} strokeWidth={1.8} />
-
-              <div>
-                <h3 id="calendar-settings-heading">Calendar</h3>
-                <p>Choose how the month is arranged.</p>
-              </div>
-            </div>
-
-            <fieldset className={styles.setting}>
-              <legend className={styles.label}>
-                First day of the week
-              </legend>
-
-              <div
-                className={`${styles.segmentedControl} ${styles.segmentedControlTwo}`}
+            {activeSection === 'region' ? (
+              <section
+                className={styles.section}
+                aria-labelledby="region-heading"
               >
-                {weekStartOptions.map((option) => (
-                  <button
-                    className={`${styles.segmentButton} ${
-                      settings.weekStartsOn === option.value
-                        ? styles.segmentButtonSelected
-                        : ''
-                    }`}
-                    type="button"
-                    key={option.value}
-                    aria-pressed={
-                      settings.weekStartsOn === option.value
-                    }
-                    onClick={() =>
-                      updateSettings({
-                        weekStartsOn: option.value,
-                      })
-                    }
+                <div className={styles.sectionHeading}>
+                  <div className={styles.sectionIcon}>
+                    <Globe2 size={19} strokeWidth={1.8} />
+                  </div>
+
+                  <div>
+                    <h3 id="region-heading">Language and region</h3>
+                    <p>Control how timed events are presented.</p>
+                  </div>
+                </div>
+
+                <div className={styles.cardGrid}>
+                  <label
+                    className={`${styles.settingCard} ${styles.cardWide}`}
                   >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+                    <span className={styles.label}>
+                      Display timezone
+                    </span>
 
-            <fieldset className={styles.setting}>
-              <legend className={styles.label}>Time format</legend>
+                    <input
+                      className={styles.input}
+                      type="text"
+                      list="dayframe-display-time-zones"
+                      defaultValue={settings.displayTimeZone}
+                      key={settings.displayTimeZone}
+                      placeholder="Europe/Helsinki"
+                      onBlur={(event) =>
+                        saveDisplayTimeZone(event.target.value)
+                      }
+                      onKeyDown={handleTimeZoneKeyDown}
+                    />
 
-              <div
-                className={`${styles.segmentedControl} ${styles.segmentedControlTwo}`}
-              >
-                {timeFormatOptions.map((option) => (
-                  <button
-                    className={`${styles.segmentButton} ${
-                      settings.timeFormat === option.value
-                        ? styles.segmentButtonSelected
-                        : ''
-                    }`}
-                    type="button"
-                    key={option.value}
-                    aria-pressed={
-                      settings.timeFormat === option.value
-                    }
-                    onClick={() =>
-                      updateSettings({
-                        timeFormat: option.value,
-                      })
-                    }
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
+                    <datalist id="dayframe-display-time-zones">
+                      {commonTimeZones.map((timeZone) => (
+                        <option value={timeZone} key={timeZone} />
+                      ))}
+                    </datalist>
 
-            <fieldset className={styles.setting}>
-              <legend className={styles.label}>Density</legend>
+                    <span className={styles.hint}>
+                      Timed events move visually without changing their
+                      stored instant. Use an IANA timezone.
+                    </span>
+                  </label>
+                </div>
+              </section>
+            ) : null}
 
-              <div
-                className={`${styles.segmentedControl} ${styles.segmentedControlTwo}`}
-              >
-                {densityOptions.map((option) => (
-                  <button
-                    className={`${styles.segmentButton} ${
-                      settings.density === option.value
-                        ? styles.segmentButtonSelected
-                        : ''
-                    }`}
-                    type="button"
-                    key={option.value}
-                    aria-pressed={
-                      settings.density === option.value
-                    }
-                    onClick={() =>
-                      updateSettings({
-                        density: option.value,
-                      })
-                    }
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </fieldset>
-
-            <label className={styles.toggleSetting}>
-              <span>
-                <strong>Week numbers</strong>
-                <small>Use ISO 8601 numbering.</small>
-              </span>
-
-              <input
-                type="checkbox"
-                checked={settings.showWeekNumbers}
-                onChange={(event) =>
-                  updateSettings({
-                    showWeekNumbers: event.target.checked,
-                  })
-                }
-              />
-
-              <span className={styles.toggleTrack} aria-hidden="true">
-                <span className={styles.toggleThumb} />
-              </span>
-            </label>
-
-            <label className={styles.setting}>
-              <span className={styles.label}>Default calendar</span>
-
-              <select
-                className={styles.input}
-                value={settings.defaultCalendarId}
-                onChange={(event) =>
-                  updateSettings({
-                    defaultCalendarId: event.target.value,
-                  })
-                }
-              >
-                {calendars.map((calendar) => (
-                  <option value={calendar.id} key={calendar.id}>
-                    {calendar.name}
-                  </option>
-                ))}
-              </select>
-
-              <span className={styles.hint}>
-                Used by the global New event button.
-              </span>
-            </label>
-          </section>
-
-          <section
-            className={styles.section}
-            aria-labelledby="region-heading"
-          >
-            <div className={styles.sectionHeading}>
-              <Globe2 size={17} strokeWidth={1.8} />
-
-              <div>
-                <h3 id="region-heading">Language and region</h3>
-                <p>Control how timed events are displayed.</p>
-              </div>
-            </div>
-
-            <label className={styles.setting}>
-              <span className={styles.label}>Display timezone</span>
-
-              <input
-                className={styles.input}
-                type="text"
-                list="dayframe-display-time-zones"
-                defaultValue={settings.displayTimeZone}
-                key={settings.displayTimeZone}
-                placeholder="Europe/Helsinki"
-                onBlur={(event) =>
-                  saveDisplayTimeZone(event.target.value)
-                }
-                onKeyDown={handleTimeZoneKeyDown}
-              />
-
-              <datalist id="dayframe-display-time-zones">
-                {commonTimeZones.map((timeZone) => (
-                  <option value={timeZone} key={timeZone} />
-                ))}
-              </datalist>
-
-              <span className={styles.hint}>
-                Timed events move visually without changing their stored
-                instant. Use an IANA timezone.
-              </span>
-            </label>
-          </section>
-        </div>
-
-        {error ? (
-          <p className={styles.error} role="alert">
-            {error}
-          </p>
-        ) : null}
-      </aside>
-    </div>
+            {error ? (
+              <p className={styles.error} role="alert">
+                {error}
+              </p>
+            ) : null}
+          </div>
+        </main>
+      </div>
+    </aside>
   )
 }

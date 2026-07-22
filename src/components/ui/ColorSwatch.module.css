@@ -1,0 +1,45 @@
+.swatch {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  padding: 0;
+  color: #11151b;
+  border: 2px solid transparent;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow: 0 0 0 1px var(--color-border-strong);
+  transition:
+    filter 120ms ease,
+    transform 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.small {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.medium {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+
+.swatch:hover:not(:disabled) {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.selected {
+  border-color: var(--color-surface);
+  box-shadow: 0 0 0 1px var(--color-text);
+}
+
+.swatch:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.swatch:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}

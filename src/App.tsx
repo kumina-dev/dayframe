@@ -527,6 +527,8 @@ export default function App() {
           initialDate={initialEditorDate}
           key={eventDialogKey}
           open={editor !== null}
+          timeFormat={settings.timeFormat}
+          weekStartsOn={settings.weekStartsOn}
           onClose={() => setEditor(null)}
           onCreate={createEvent}
           onUpdate={updateEvent}

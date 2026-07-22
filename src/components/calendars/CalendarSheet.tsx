@@ -6,6 +6,12 @@ import {
   useState,
 } from 'react'
 
+import {
+  calendarEventColorDetails,
+  calendarEventColors,
+} from '../../lib/calendarColors'
+import { ColorSwatch } from '../ui/ColorSwatch'
+
 import type {
   CalendarDeleteStrategy,
   CalendarEventColor,
@@ -48,20 +54,6 @@ interface DeleteState {
   calendarId: string
   mode: CalendarDeleteStrategy['type']
   targetCalendarId: string
-}
-
-const colors: CalendarEventColor[] = [
-  'periwinkle',
-  'teal',
-  'rose',
-  'amber',
-]
-
-const colorLabels: Record<CalendarEventColor, string> = {
-  periwinkle: 'Periwinkle',
-  teal: 'Teal',
-  rose: 'Rose',
-  amber: 'Amber',
 }
 
 function CalendarRow({
@@ -163,21 +155,13 @@ function CalendarRow({
         className={styles.colorOptions}
         aria-label={`Color for ${calendar.name}`}
       >
-        {colors.map((color) => (
-          <button
-            className={`${styles.colorButton} ${
-              styles[`color${color}`]
-            } ${
-              calendar.color === color
-                ? styles.colorButtonSelected
-                : ''
-            }`}
-            type="button"
+        {calendarEventColors.map((color) => (
+          <ColorSwatch
             key={color}
-            aria-label={colorLabels[color]}
-            aria-pressed={calendar.color === color}
-            title={colorLabels[color]}
-            onClick={() => {
+            color={calendarEventColorDetails[color].value}
+            label={calendarEventColorDetails[color].label}
+            selected={calendar.color === color}
+            onSelect={() => {
               void onUpdate(calendar.id, {
                 color,
               }).catch(onError)
@@ -546,22 +530,14 @@ export function CalendarSheet({
             <legend className={styles.label}>Color</legend>
 
             <div className={styles.colorOptions}>
-              {colors.map((color) => (
-                <button
-                  className={`${styles.colorButton} ${
-                    styles[`color${color}`]
-                  } ${
-                    newCalendarColor === color
-                      ? styles.colorButtonSelected
-                      : ''
-                  }`}
-                  type="button"
+              {calendarEventColors.map((color) => (
+                <ColorSwatch
                   key={color}
-                  aria-label={colorLabels[color]}
-                  aria-pressed={newCalendarColor === color}
-                  title={colorLabels[color]}
+                  color={calendarEventColorDetails[color].value}
+                  label={calendarEventColorDetails[color].label}
+                  selected={newCalendarColor === color}
                   disabled={isCreating}
-                  onClick={() => setNewCalendarColor(color)}
+                  onSelect={() => setNewCalendarColor(color)}
                 />
               ))}
             </div>

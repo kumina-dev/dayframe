@@ -181,43 +181,6 @@
   gap: 0.5rem;
 }
 
-.colorButton {
-  width: 1.5rem;
-  height: 1.5rem;
-  padding: 0;
-  border: 2px solid transparent;
-  border-radius: 999px;
-  cursor: pointer;
-  box-shadow: 0 0 0 1px var(--color-border-strong);
-}
-
-.colorButton:hover:not(:disabled) {
-  transform: scale(1.08);
-}
-
-.colorButtonSelected {
-  border-color: var(--color-surface-raised);
-  box-shadow:
-    0 0 0 2px var(--color-text),
-    0 0 0 4px var(--color-surface-raised);
-}
-
-.colorperiwinkle {
-  background: #8e9cf4;
-}
-
-.colorteal {
-  background: #56beb0;
-}
-
-.colorrose {
-  background: #d77091;
-}
-
-.coloramber {
-  background: #daa752;
-}
-
 .deleteConfirmation {
   display: grid;
   gap: 1rem;

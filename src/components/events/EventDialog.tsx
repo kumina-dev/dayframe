@@ -6,6 +6,10 @@ import {
 } from 'react'
 
 import {
+  calendarEventColorDetails,
+  calendarEventColors,
+} from '../../lib/calendarColors'
+import {
   calendarEventToDraft,
   createEmptyEventDraft,
   validateCalendarEventDraft,
@@ -15,7 +19,11 @@ import type {
   CalendarEventColor,
   CalendarEventDraft,
   LocalCalendar,
+  TimeFormat,
 } from '../../types/calendar'
+import { ColorSwatch } from '../ui/ColorSwatch'
+import { DatePicker } from '../ui/DatePicker'
+import { TimePicker } from '../ui/TimePicker'
 
 import styles from './EventDialog.module.css'
 
@@ -28,6 +36,8 @@ interface EventDialogProps {
   event?: CalendarEvent
   initialDate: string
   open: boolean
+  timeFormat: TimeFormat
+  weekStartsOn: 0 | 1
   onClose: () => void
   onCreate: (event: CalendarEventDraft) => Promise<void>
   onUpdate: (
@@ -35,20 +45,6 @@ interface EventDialogProps {
     event: CalendarEventDraft,
   ) => Promise<void>
   onDelete: (eventId: string) => Promise<void>
-}
-
-const colors: CalendarEventColor[] = [
-  'periwinkle',
-  'teal',
-  'rose',
-  'amber',
-]
-
-const colorLabels: Record<CalendarEventColor, string> = {
-  periwinkle: 'Periwinkle',
-  teal: 'Teal',
-  rose: 'Rose',
-  amber: 'Amber',
 }
 
 const commonTimeZones = [
@@ -73,6 +69,8 @@ export function EventDialog({
   event,
   initialDate,
   open,
+  timeFormat,
+  weekStartsOn,
   onClose,
   onCreate,
   onUpdate,
@@ -342,18 +340,15 @@ export function EventDialog({
           </label>
 
           <div className={styles.fieldRow}>
-            <label className={styles.field}>
+            <div className={styles.field}>
               <span className={styles.label}>Start date</span>
 
-              <input
-                className={styles.input}
-                type="date"
+              <DatePicker
+                ariaLabel="Start date"
                 value={startDate}
                 disabled={isPending}
-                onChange={(inputEvent) => {
-                  const nextStartDate =
-                    inputEvent.target.value
-
+                weekStartsOn={weekStartsOn}
+                onChange={(nextStartDate) => {
                   setStartDate(nextStartDate)
 
                   if (endDate < nextStartDate) {
@@ -361,53 +356,49 @@ export function EventDialog({
                   }
                 }}
               />
-            </label>
+            </div>
 
-            <label className={styles.field}>
+            <div className={styles.field}>
               <span className={styles.label}>End date</span>
 
-              <input
-                className={styles.input}
-                type="date"
+              <DatePicker
+                align="end"
+                ariaLabel="End date"
                 value={endDate}
                 min={startDate}
                 disabled={isPending}
-                onChange={(inputEvent) =>
-                  setEndDate(inputEvent.target.value)
-                }
+                weekStartsOn={weekStartsOn}
+                onChange={setEndDate}
               />
-            </label>
+            </div>
           </div>
 
           {!allDay ? (
             <div className={styles.fieldRow}>
-              <label className={styles.field}>
+              <div className={styles.field}>
                 <span className={styles.label}>Start time</span>
 
-                <input
-                  className={styles.input}
-                  type="time"
+                <TimePicker
+                  ariaLabel="Start time"
                   value={startTime}
                   disabled={isPending}
-                  onChange={(inputEvent) =>
-                    setStartTime(inputEvent.target.value)
-                  }
+                  timeFormat={timeFormat}
+                  onChange={setStartTime}
                 />
-              </label>
+              </div>
 
-              <label className={styles.field}>
+              <div className={styles.field}>
                 <span className={styles.label}>End time</span>
 
-                <input
-                  className={styles.input}
-                  type="time"
+                <TimePicker
+                  align="end"
+                  ariaLabel="End time"
                   value={endTime}
                   disabled={isPending}
-                  onChange={(inputEvent) =>
-                    setEndTime(inputEvent.target.value)
-                  }
+                  timeFormat={timeFormat}
+                  onChange={setEndTime}
                 />
-              </label>
+              </div>
             </div>
           ) : null}
 
@@ -502,7 +493,7 @@ export function EventDialog({
                   <button
                     className={`${styles.calendarColorButton} ${
                       color === 'calendar'
-                        ? styles.colorButtonSelected
+                        ? styles.calendarColorButtonSelected
                         : ''
                     }`}
                     type="button"
@@ -513,22 +504,18 @@ export function EventDialog({
                     Calendar color
                   </button>
 
-                  {colors.map((eventColor) => (
-                    <button
-                      className={`${styles.colorButton} ${
-                        styles[`color${eventColor}`]
-                      } ${
-                        color === eventColor
-                          ? styles.colorButtonSelected
-                          : ''
-                      }`}
-                      type="button"
+                  {calendarEventColors.map((eventColor) => (
+                    <ColorSwatch
                       key={eventColor}
-                      aria-label={colorLabels[eventColor]}
-                      aria-pressed={color === eventColor}
-                      title={colorLabels[eventColor]}
+                      color={
+                        calendarEventColorDetails[eventColor].value
+                      }
+                      label={
+                        calendarEventColorDetails[eventColor].label
+                      }
+                      selected={color === eventColor}
                       disabled={isPending}
-                      onClick={() => setColor(eventColor)}
+                      onSelect={() => setColor(eventColor)}
                     />
                   ))}
                 </div>

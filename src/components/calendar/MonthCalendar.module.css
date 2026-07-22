@@ -78,7 +78,7 @@
   transition: background-color 120ms ease;
 }
 
-.day:nth-child(7n) {
+.day:last-child {
   border-right: 0;
 }
 
