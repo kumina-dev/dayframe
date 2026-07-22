@@ -19,21 +19,29 @@ import {
   useState,
 } from 'react'
 
+import { LocalAuthScreen } from './components/auth/LocalAuthScreen'
 import { DayframeLogo } from './components/brand/DayframeLogo'
 import { MonthCalendar } from './components/calendar/MonthCalendar'
 import { CalendarSheet } from './components/calendars/CalendarSheet'
 import { EventDialog } from './components/events/EventDialog'
+import { NotificationCenter } from './components/notifications/NotificationCenter'
 import { SettingsSheet } from './components/settings/SettingsSheet'
 import {
+  createDefaultIntegrations,
+  createDefaultProfile,
   createDefaultSettings,
+  createDefaultSubscription,
   dayframeDb,
   ensureInitialData,
+  localProfileId,
+  localSubscriptionId,
   settingsId,
 } from './db/dayframeDb'
 import {
   calendarEventToDraft,
   createCalendarEventRecord,
 } from './lib/calendarEvents'
+import { dateLocales } from './lib/dateLocales'
 import { applyAppearanceSettings } from './lib/theme'
 import type {
   CalendarDeleteStrategy,
@@ -41,7 +49,11 @@ import type {
   CalendarEventDraft,
   CalendarUpdate,
   DayframeSettingsUpdate,
+  IntegrationProvider,
   LocalCalendar,
+  LocalIntegrationUpdate,
+  LocalProfileUpdate,
+  SubscriptionPlan,
 } from './types/calendar'
 
 import styles from './App.module.css'
@@ -63,6 +75,18 @@ export default function App() {
     () => createDefaultSettings(),
     [],
   )
+  const fallbackProfile = useMemo(
+    () => createDefaultProfile(),
+    [],
+  )
+  const fallbackIntegrations = useMemo(
+    () => createDefaultIntegrations(),
+    [],
+  )
+  const fallbackSubscription = useMemo(
+    () => createDefaultSubscription(),
+    [],
+  )
 
   const [visibleMonth, setVisibleMonth] = useState(() =>
     startOfMonth(today),
@@ -73,9 +97,23 @@ export default function App() {
     useState(false)
   const [settingsSheetOpen, setSettingsSheetOpen] =
     useState(false)
+  const [initializationError, setInitializationError] =
+    useState('')
 
   useEffect(() => {
-    void ensureInitialData()
+    let active = true
+
+    void ensureInitialData().catch(() => {
+      if (active) {
+        setInitializationError(
+          'Dayframe could not open its local database.',
+        )
+      }
+    })
+
+    return () => {
+      active = false
+    }
   }, [])
 
   const calendars = useLiveQuery(
@@ -95,8 +133,33 @@ export default function App() {
     [],
   )
 
+  const persistedProfile = useLiveQuery(
+    () => dayframeDb.profile.get(localProfileId),
+    [],
+  )
+
+  const notifications = useLiveQuery(
+    () => dayframeDb.notifications.toArray(),
+    [],
+    [],
+  )
+
+  const integrations = useLiveQuery(
+    () => dayframeDb.integrations.toArray(),
+    [],
+    [],
+  )
+
+  const persistedSubscription = useLiveQuery(
+    () => dayframeDb.subscription.get(localSubscriptionId),
+    [],
+  )
+
   const settings =
     persistedSettings ?? fallbackSettings
+  const profile = persistedProfile ?? fallbackProfile
+  const subscription =
+    persistedSubscription ?? fallbackSubscription
 
   const { accentColor, theme } = settings
 
@@ -232,6 +295,9 @@ export default function App() {
       name,
       color,
       timeZone: settings.displayTimeZone,
+      defaultEventDuration: 60,
+      defaultReminderMinutes:
+        settings.defaultReminderMinutes,
       isVisible: true,
       createdAt: timestamp,
       updatedAt: timestamp,
@@ -388,8 +454,146 @@ export default function App() {
     }
   }
 
+  const updateProfile = async (
+    changes: LocalProfileUpdate,
+  ) => {
+    const updatedProfileCount =
+      await dayframeDb.profile.update(localProfileId, {
+        ...changes,
+        updatedAt: new Date().toISOString(),
+      })
+
+    if (updatedProfileCount === 0) {
+      await dayframeDb.profile.put({
+        ...profile,
+        ...changes,
+        id: localProfileId,
+        updatedAt: new Date().toISOString(),
+      })
+    }
+  }
+
+  const updateIntegration = async (
+    provider: IntegrationProvider,
+    changes: LocalIntegrationUpdate,
+  ) => {
+    const updatedIntegrationCount =
+      await dayframeDb.integrations.update(provider, {
+        ...changes,
+        updatedAt: new Date().toISOString(),
+      })
+
+    if (updatedIntegrationCount === 0) {
+      const fallbackIntegration = fallbackIntegrations.find(
+        (integration) => integration.id === provider,
+      )
+
+      if (!fallbackIntegration) {
+        throw new Error('The integration does not exist.')
+      }
+
+      await dayframeDb.integrations.put({
+        ...fallbackIntegration,
+        ...changes,
+        updatedAt: new Date().toISOString(),
+      })
+    }
+  }
+
+  const updateSubscription = async (
+    plan: SubscriptionPlan,
+  ) => {
+    const timestamp = new Date().toISOString()
+    const currentPeriodEnd =
+      plan === 'free'
+        ? undefined
+        : addMonths(new Date(), 1).toISOString()
+
+    const updatedSubscriptionCount =
+      await dayframeDb.subscription.update(localSubscriptionId, {
+        plan,
+        status: 'active',
+        currentPeriodEnd,
+        updatedAt: timestamp,
+      })
+
+    if (updatedSubscriptionCount === 0) {
+      await dayframeDb.subscription.put({
+        ...subscription,
+        id: localSubscriptionId,
+        plan,
+        status: 'active',
+        currentPeriodEnd,
+        updatedAt: timestamp,
+      })
+    }
+  }
+
+  const sendDemoNotification = async () => {
+    if (!settings.notificationsEnabled) {
+      throw new Error('In-app notifications are disabled.')
+    }
+
+    await dayframeDb.notifications.add({
+      id: crypto.randomUUID(),
+      title: 'Your schedule is ready',
+      message:
+        'This is a local Dayframe notification created for the demo.',
+      isRead: false,
+      createdAt: new Date().toISOString(),
+    })
+  }
+
+  const markAllNotificationsRead = async () => {
+    await dayframeDb.notifications.toCollection().modify({
+      isRead: true,
+    })
+  }
+
+  const clearNotifications = async () => {
+    await dayframeDb.notifications.clear()
+  }
+
   const showCurrentMonth = () => {
     setVisibleMonth(startOfMonth(today))
+  }
+
+  const initialDataReady = Boolean(
+    persistedSettings &&
+      persistedProfile &&
+      persistedSubscription &&
+      calendars.length > 0 &&
+      integrations.length > 0,
+  )
+
+  if (!initialDataReady) {
+    return (
+      <main className={styles.loadingScreen}>
+        <DayframeLogo />
+
+        <div className={styles.loadingMessage} role="status">
+          {initializationError ? (
+            <p className={styles.loadingError} role="alert">
+              {initializationError}
+            </p>
+          ) : (
+            <>
+              <span className={styles.loadingIndicator} />
+              <span>Opening your local calendar…</span>
+            </>
+          )}
+        </div>
+      </main>
+    )
+  }
+
+  if (!profile.isSignedIn) {
+    return (
+      <LocalAuthScreen
+        profile={profile}
+        onSignIn={updateProfile}
+      />
+    )
   }
 
   return (
@@ -440,11 +644,20 @@ export default function App() {
           </div>
 
           <h1 className={styles.monthTitle} aria-live="polite">
-            {format(visibleMonth, 'MMMM yyyy')}
+            {format(visibleMonth, 'MMMM yyyy', {
+              locale: dateLocales[settings.language],
+            })}
           </h1>
         </nav>
 
         <div className={styles.headerActions}>
+          <NotificationCenter
+            language={settings.language}
+            notifications={notifications}
+            onClear={clearNotifications}
+            onMarkAllRead={markAllNotificationsRead}
+          />
+
           <button
             className={styles.calendarButton}
             type="button"
@@ -487,6 +700,7 @@ export default function App() {
           density={settings.density}
           displayTimeZone={settings.displayTimeZone}
           events={events}
+          language={settings.language}
           showWeekNumbers={settings.showWeekNumbers}
           timeFormat={settings.timeFormat}
           visibleMonth={visibleMonth}
@@ -513,10 +727,18 @@ export default function App() {
 
       <SettingsSheet
         calendars={calendars}
+        integrations={integrations}
         open={settingsSheetOpen}
+        profile={profile}
         settings={settings}
+        subscription={subscription}
         onClose={() => setSettingsSheetOpen(false)}
+        onSendDemoNotification={sendDemoNotification}
         onUpdate={updateSettings}
+        onUpdateCalendar={updateCalendar}
+        onUpdateIntegration={updateIntegration}
+        onUpdateProfile={updateProfile}
+        onUpdateSubscription={updateSubscription}
       />
 
       {defaultCalendar ? (
@@ -526,6 +748,7 @@ export default function App() {
           event={selectedEvent}
           initialDate={initialEditorDate}
           key={eventDialogKey}
+          language={settings.language}
           open={editor !== null}
           timeFormat={settings.timeFormat}
           weekStartsOn={settings.weekStartsOn}

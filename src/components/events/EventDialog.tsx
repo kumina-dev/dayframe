@@ -18,7 +18,9 @@ import type {
   CalendarEvent,
   CalendarEventColor,
   CalendarEventDraft,
+  LanguagePreference,
   LocalCalendar,
+  ReminderMinutes,
   TimeFormat,
 } from '../../types/calendar'
 import { ColorSwatch } from '../ui/ColorSwatch'
@@ -35,6 +37,7 @@ interface EventDialogProps {
   defaultCalendar: LocalCalendar
   event?: CalendarEvent
   initialDate: string
+  language: LanguagePreference
   open: boolean
   timeFormat: TimeFormat
   weekStartsOn: 0 | 1
@@ -63,11 +66,24 @@ const commonTimeZones = [
   'Australia/Sydney',
 ]
 
+const reminderOptions: Array<{
+  value: ReminderMinutes
+  label: string
+}> = [
+  { value: 0, label: 'At event time' },
+  { value: 5, label: '5 minutes before' },
+  { value: 10, label: '10 minutes before' },
+  { value: 15, label: '15 minutes before' },
+  { value: 30, label: '30 minutes before' },
+  { value: 60, label: '1 hour before' },
+]
+
 export function EventDialog({
   calendars,
   defaultCalendar,
   event,
   initialDate,
+  language,
   open,
   timeFormat,
   weekStartsOn,
@@ -87,6 +103,8 @@ export function EventDialog({
         event,
         eventCalendar?.timeZone ??
           defaultCalendar.timeZone,
+        eventCalendar?.defaultReminderMinutes ??
+          defaultCalendar.defaultReminderMinutes,
       )
     : createEmptyEventDraft(initialDate, defaultCalendar)
 
@@ -120,6 +138,9 @@ export function EventDialog({
     useState<EventColorSelection>(
       initialDraft.color ?? 'calendar',
     )
+  const [reminderMinutes, setReminderMinutes] = useState(
+    initialDraft.reminderMinutes,
+  )
   const [error, setError] = useState('')
   const [pendingAction, setPendingAction] =
     useState<PendingAction>(null)
@@ -172,6 +193,7 @@ export function EventDialog({
     endTime,
     timeZone,
     color: color === 'calendar' ? undefined : color,
+    reminderMinutes,
   })
 
   const handleSubmit = async (
@@ -347,6 +369,7 @@ export function EventDialog({
                 ariaLabel="Start date"
                 value={startDate}
                 disabled={isPending}
+                language={language}
                 weekStartsOn={weekStartsOn}
                 onChange={(nextStartDate) => {
                   setStartDate(nextStartDate)
@@ -367,6 +390,7 @@ export function EventDialog({
                 value={endDate}
                 min={startDate}
                 disabled={isPending}
+                language={language}
                 weekStartsOn={weekStartsOn}
                 onChange={setEndDate}
               />
@@ -483,6 +507,33 @@ export function EventDialog({
                   </span>
                 </label>
               ) : null}
+
+              <label className={styles.field}>
+                <span className={styles.label}>Reminder</span>
+
+                <select
+                  className={styles.input}
+                  value={reminderMinutes}
+                  disabled={isPending}
+                  onChange={(inputEvent) =>
+                    setReminderMinutes(
+                      Number(
+                        inputEvent.target.value,
+                      ) as ReminderMinutes,
+                    )
+                  }
+                >
+                  {reminderOptions.map((option) => (
+                    <option value={option.value} key={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+
+                <span className={styles.hint}>
+                  Stored with the event for the local reminder demo.
+                </span>
+              </label>
 
               <fieldset className={styles.colorFieldset}>
                 <legend className={styles.label}>

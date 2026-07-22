@@ -18,10 +18,12 @@ import {
   getCalendarEventDateKeys,
   getCalendarEventTimeLabel,
 } from '../../lib/calendarEvents'
+import { dateLocales } from '../../lib/dateLocales'
 import type {
   CalendarDensity,
   CalendarEvent,
   CalendarEventColor,
+  LanguagePreference,
   LocalCalendar,
   TimeFormat,
 } from '../../types/calendar'
@@ -33,6 +35,7 @@ interface MonthCalendarProps {
   density: CalendarDensity
   displayTimeZone: string
   events: CalendarEvent[]
+  language: LanguagePreference
   showWeekNumbers: boolean
   timeFormat: TimeFormat
   visibleMonth: Date
@@ -48,24 +51,46 @@ interface DisplayEvent {
 }
 
 const weekdayLabels = {
-  0: [
-    'Sunday',
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-  ],
-  1: [
-    'Monday',
-    'Tuesday',
-    'Wednesday',
-    'Thursday',
-    'Friday',
-    'Saturday',
-    'Sunday',
-  ],
+  en: {
+    0: [
+      'Sunday',
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+    ],
+    1: [
+      'Monday',
+      'Tuesday',
+      'Wednesday',
+      'Thursday',
+      'Friday',
+      'Saturday',
+      'Sunday',
+    ],
+  },
+  fi: {
+    0: [
+      'sunnuntai',
+      'maanantai',
+      'tiistai',
+      'keskiviikko',
+      'torstai',
+      'perjantai',
+      'lauantai',
+    ],
+    1: [
+      'maanantai',
+      'tiistai',
+      'keskiviikko',
+      'torstai',
+      'perjantai',
+      'lauantai',
+      'sunnuntai',
+    ],
+  },
 } as const
 
 const eventColorClasses: Record<CalendarEventColor, string> = {
@@ -80,6 +105,7 @@ export function MonthCalendar({
   density,
   displayTimeZone,
   events,
+  language,
   showWeekNumbers,
   timeFormat,
   visibleMonth,
@@ -87,6 +113,8 @@ export function MonthCalendar({
   onCreateEvent,
   onSelectEvent,
 }: MonthCalendarProps) {
+  const dateLocale = dateLocales[language]
+
   const weeks = useMemo(() => {
     const firstDay = startOfWeek(startOfMonth(visibleMonth), {
       weekStartsOn,
@@ -199,7 +227,9 @@ export function MonthCalendar({
   return (
     <section
       className={calendarClasses}
-      aria-label={format(visibleMonth, 'MMMM yyyy')}
+      aria-label={format(visibleMonth, 'MMMM yyyy', {
+        locale: dateLocale,
+      })}
     >
       <div
         className={styles.weekdays}
@@ -210,10 +240,13 @@ export function MonthCalendar({
           <div className={styles.weekNumberHeading}>Wk</div>
         ) : null}
 
-        {weekdayLabels[weekStartsOn].map((weekday) => (
+        {weekdayLabels[language][weekStartsOn].map((weekday) => (
           <div
             className={`${styles.weekday} ${
-              weekday === 'Saturday' || weekday === 'Sunday'
+              weekday === 'Saturday' ||
+              weekday === 'Sunday' ||
+              weekday === 'lauantai' ||
+              weekday === 'sunnuntai'
                 ? styles.weekdayWeekend
                 : ''
             }`}
@@ -277,6 +310,7 @@ export function MonthCalendar({
                 const createEventLabel = `Add event on ${format(
                   date,
                   'EEEE, MMMM d',
+                  { locale: dateLocale },
                 )}`
 
                 return (

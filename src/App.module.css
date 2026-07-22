@@ -7,6 +7,48 @@
   padding: 1.125rem;
 }
 
+.loadingScreen {
+  display: grid;
+  min-height: 100dvh;
+  grid-template-rows: auto 1fr;
+  padding: 1.125rem;
+}
+
+.loadingMessage {
+  display: flex;
+  align-self: center;
+  justify-self: center;
+  align-items: center;
+  gap: 0.625rem;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+}
+
+.loadingIndicator {
+  width: 0.75rem;
+  height: 0.75rem;
+  background: var(--color-accent);
+  border-radius: 999px;
+  box-shadow: 0 0 0 0 var(--color-accent-soft);
+  animation: loadingPulse 1.2s ease-out infinite;
+}
+
+.loadingError {
+  margin: 0;
+  padding: 0.75rem;
+  color: #f0a9b8;
+  background: rgba(215, 112, 145, 0.1);
+  border: 1px solid rgba(215, 112, 145, 0.28);
+  border-radius: 0.625rem;
+}
+
+@keyframes loadingPulse {
+  70%,
+  100% {
+    box-shadow: 0 0 0 0.5rem transparent;
+  }
+}
+
 .header {
   display: grid;
   grid-template-columns:

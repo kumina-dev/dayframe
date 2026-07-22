@@ -26,6 +26,8 @@ import {
   useState,
 } from 'react'
 
+import { dateLocales } from '../../lib/dateLocales'
+import type { LanguagePreference } from '../../types/calendar'
 import { Popover } from './Popover'
 
 import styles from './DatePicker.module.css'
@@ -37,13 +39,20 @@ interface DatePickerProps {
   max?: string
   min?: string
   value: string
+  language: LanguagePreference
   weekStartsOn: 0 | 1
   onChange: (value: string) => void
 }
 
 const weekdayLabels = {
-  0: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
-  1: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
+  en: {
+    0: ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'],
+    1: ['Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa', 'Su'],
+  },
+  fi: {
+    0: ['su', 'ma', 'ti', 'ke', 'to', 'pe', 'la'],
+    1: ['ma', 'ti', 'ke', 'to', 'pe', 'la', 'su'],
+  },
 } as const
 
 function parseDateValue(value: string) {
@@ -59,6 +68,7 @@ export function DatePicker({
   max,
   min,
   value,
+  language,
   weekStartsOn,
   onChange,
 }: DatePickerProps) {
@@ -70,6 +80,7 @@ export function DatePicker({
   const gridRef = useRef<HTMLDivElement>(null)
 
   const selectedDate = parseDateValue(value)
+  const dateLocale = dateLocales[language]
 
   const days = useMemo(() => {
     const firstDay = startOfWeek(startOfMonth(visibleMonth), {
@@ -212,7 +223,11 @@ export function DatePicker({
             }
           }}
         >
-          <span>{format(selectedDate, 'MMM d, yyyy')}</span>
+          <span>
+            {format(selectedDate, 'PP', {
+              locale: dateLocale,
+            })}
+          </span>
           <CalendarDays
             aria-hidden="true"
             size={16}
@@ -223,7 +238,11 @@ export function DatePicker({
     >
       <div className={styles.calendar}>
         <div className={styles.header}>
-          <strong>{format(visibleMonth, 'MMMM yyyy')}</strong>
+          <strong>
+            {format(visibleMonth, 'MMMM yyyy', {
+              locale: dateLocale,
+            })}
+          </strong>
 
           <div className={styles.monthActions}>
             <button
@@ -249,7 +268,7 @@ export function DatePicker({
         </div>
 
         <div className={styles.weekdays} aria-hidden="true">
-          {weekdayLabels[weekStartsOn].map((weekday) => (
+          {weekdayLabels[language][weekStartsOn].map((weekday) => (
             <span key={weekday}>{weekday}</span>
           ))}
         </div>
@@ -257,7 +276,9 @@ export function DatePicker({
         <div
           className={styles.days}
           ref={gridRef}
-          aria-label={format(visibleMonth, 'MMMM yyyy')}
+          aria-label={format(visibleMonth, 'MMMM yyyy', {
+            locale: dateLocale,
+          })}
         >
           {days.map((date) => {
             const dateKey = format(date, 'yyyy-MM-dd')
@@ -281,7 +302,9 @@ export function DatePicker({
                 type="button"
                 data-date={dateKey}
                 key={dateKey}
-                aria-label={format(date, 'EEEE, MMMM d, yyyy')}
+                aria-label={format(date, 'PPPP', {
+                  locale: dateLocale,
+                })}
                 aria-pressed={selected}
                 aria-current={isToday(date) ? 'date' : undefined}
                 disabled={unavailable}
@@ -310,7 +333,7 @@ export function DatePicker({
             disabled={isUnavailable(todayKey)}
             onClick={() => selectDate(new Date())}
           >
-            Today
+            {language === 'fi' ? 'Tänään' : 'Today'}
           </button>
         </div>
       </div>

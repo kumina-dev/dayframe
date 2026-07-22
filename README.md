@@ -12,35 +12,36 @@ Dayframe demonstrates the interface and workflows of a larger calendar product w
 - Calendar visibility controls
 - Calendar colors
 - Per-event color overrides
+- Per-calendar timezone, duration, and reminder defaults
 - Calendar selection when creating or editing events
+- Calendar deletion with event deletion or reassignment
 - Previous, next, and current-month navigation
 - Quick event creation
 - Event editing
+- Expanded optional event details
+- Multi-day events
 - Confirmed event deletion
 - IndexedDB persistence
 - Timezone-safe timed-event storage
 - All-day event storage
 - Automatic database migration
 - Events arranged chronologically by day
+- Dark, light, and system themes
+- Preset and custom accent colors
+- English and Finnish calendar date labels
+- Local in-app notification simulation
+- Local profile and authentication simulation
+- Simulated Google Calendar and Outlook connection states
+- Simulated billing and subscription plans
+- Full-screen, category-based settings
 - Responsive desktop layout
-- Dark visual system
 
 ## Planned V1 functionality
 
-- Calendar deletion and event reassignment
-- Expanded event details
-- Multi-day events
-- Dark, light, and system themes
-- Custom accent colors
-- English and Finnish
-- In-app notifications
-- Per-calendar settings
-- Local profile and authentication simulation
 - Local `.ics` import and export
-- Simulated Google Calendar and Outlook connectors
-- Simulated billing and subscription plans
 - Data backup and restoration
-- Responsive mobile layout
+- Complete Finnish interface translation
+- Additional mobile layout refinement
 - Automated tests
 
 ## Local-only architecture

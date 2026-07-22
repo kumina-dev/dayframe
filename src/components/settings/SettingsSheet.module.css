@@ -481,6 +481,418 @@
   outline-offset: 2px;
 }
 
+.toggleSetting input:disabled + .toggleTrack {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.demoNotice {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  padding: 0.75rem;
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  line-height: 1.1rem;
+  background: var(--color-input);
+  border: 1px solid var(--color-border);
+  border-radius: 0.625rem;
+}
+
+.demoBadge {
+  flex: none;
+  padding: 0.125rem 0.375rem;
+  color: var(--color-accent);
+  font-size: 0.5625rem;
+  font-weight: 750;
+  line-height: 0.875rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  background: var(--color-accent-soft);
+  border: 1px solid color-mix(
+    in srgb,
+    var(--color-accent) 24%,
+    transparent
+  );
+  border-radius: 999px;
+}
+
+.calendarDefaults,
+.integrationList {
+  display: grid;
+  gap: 0.875rem;
+}
+
+.calendarDefaultCard,
+.integrationCard,
+.profileCard,
+.billingSummary,
+.planCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.875rem;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+.calendarDefaultCard {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.calendarDefaultHeader {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+}
+
+.calendarDefaultHeader > div {
+  display: grid;
+  gap: 0.1875rem;
+}
+
+.calendarDefaultHeader h4,
+.integrationHeader h4,
+.planHeader h4 {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-weight: 650;
+}
+
+.calendarDefaultHeader span,
+.integrationHeader p,
+.planHeader p {
+  margin: 0;
+  color: var(--color-text-subtle);
+  font-size: 0.6875rem;
+  line-height: 1.05rem;
+}
+
+.calendarColorDot {
+  width: 0.75rem;
+  height: 0.75rem;
+  flex: none;
+  border-radius: 999px;
+}
+
+.calendarColorDot[data-color="periwinkle"] {
+  background: #8e9cf4;
+}
+
+.calendarColorDot[data-color="teal"] {
+  background: #56beb0;
+}
+
+.calendarColorDot[data-color="rose"] {
+  background: #d77091;
+}
+
+.calendarColorDot[data-color="amber"] {
+  background: #daa752;
+}
+
+.inlineGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.inlineGrid label {
+  display: grid;
+  min-width: 0;
+  gap: 0.4375rem;
+}
+
+.profileCard {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem;
+}
+
+.avatar {
+  display: grid;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex: none;
+  place-items: center;
+  color: var(--color-accent-contrast);
+  font-size: 0.75rem;
+  font-weight: 750;
+  background: var(--color-accent);
+  border-radius: 0.875rem;
+}
+
+.profileIdentity {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.profileIdentity > div {
+  display: grid;
+  min-width: 0;
+  gap: 0.1875rem;
+}
+
+.profileIdentity strong {
+  overflow: hidden;
+  font-size: 0.8125rem;
+  font-weight: 650;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profileIdentity > div > span,
+.integrationMeta {
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+}
+
+.statusBadge,
+.statusBadgeMuted {
+  flex: none;
+  padding: 0.25rem 0.4375rem;
+  font-size: 0.5625rem;
+  font-weight: 750;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  border-radius: 999px;
+}
+
+.statusBadge {
+  color: #76d5c6;
+  background: rgba(86, 190, 176, 0.1);
+  border: 1px solid rgba(86, 190, 176, 0.28);
+}
+
+.statusBadgeMuted {
+  color: var(--color-text-subtle);
+  background: var(--color-input);
+  border: 1px solid var(--color-border);
+}
+
+.sectionActions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sectionActions > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.sectionActions strong {
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.sectionActions span {
+  color: var(--color-text-subtle);
+  font-size: 0.6875rem;
+  line-height: 1.05rem;
+}
+
+.primarySmallButton,
+.secondaryButton,
+.dangerButton {
+  display: inline-flex;
+  width: fit-content;
+  min-height: 2.25rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.375rem;
+  padding: 0.4375rem 0.75rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+.primarySmallButton {
+  color: var(--color-accent-contrast);
+  background: var(--color-accent);
+  border: 1px solid var(--color-accent);
+}
+
+.primarySmallButton:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+  border-color: var(--color-accent-hover);
+}
+
+.secondaryButton {
+  color: var(--color-text-muted);
+  background: transparent;
+  border: 1px solid var(--color-border);
+}
+
+.secondaryButton:hover:not(:disabled) {
+  color: var(--color-text);
+  background: var(--color-surface-hover);
+  border-color: var(--color-border-strong);
+}
+
+.dangerButton {
+  flex: none;
+  color: #d98b9f;
+  background: transparent;
+  border: 1px solid rgba(215, 112, 145, 0.28);
+}
+
+.dangerButton:hover:not(:disabled) {
+  color: #f0a9b8;
+  background: rgba(215, 112, 145, 0.1);
+  border-color: rgba(215, 112, 145, 0.42);
+}
+
+.primarySmallButton:disabled,
+.secondaryButton:disabled,
+.dangerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.42;
+}
+
+.primarySmallButton:focus-visible,
+.secondaryButton:focus-visible,
+.dangerButton:focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 2px;
+}
+
+.integrationCard {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.875rem;
+  padding: 1rem;
+}
+
+.integrationIcon {
+  display: grid;
+  width: 2.5rem;
+  height: 2.5rem;
+  place-items: center;
+  color: var(--color-text);
+  font-size: 0.8125rem;
+  font-weight: 750;
+  background: var(--color-input);
+  border: 1px solid var(--color-border-strong);
+  border-radius: 0.75rem;
+}
+
+.integrationBody {
+  display: grid;
+  min-width: 0;
+  gap: 0.75rem;
+}
+
+.integrationHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.integrationHeader > div:first-child {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.integrationMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem 1rem;
+}
+
+.integrationActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.billingSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.billingSummary > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.billingSummary strong {
+  font-size: 1rem;
+  font-weight: 680;
+}
+
+.planGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: 0.75rem;
+}
+
+.planCard {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.planCardSelected {
+  border-color: color-mix(
+    in srgb,
+    var(--color-accent) 55%,
+    var(--color-border)
+  );
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.planHeader {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.75rem;
+}
+
+.planHeader > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.price {
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.price small {
+  color: var(--color-text-subtle);
+  font-size: 0.5625rem;
+  font-weight: 600;
+}
+
+.featureList {
+  display: grid;
+  gap: 0.375rem;
+  margin: 0;
+  padding-left: 1rem;
+  color: var(--color-text-muted);
+  font-size: 0.6875rem;
+  line-height: 1rem;
+}
+
+.planCard > button {
+  width: 100%;
+  margin-top: auto;
+}
+
 .error {
   margin: 1rem 0 0;
   padding: 0.75rem;
@@ -542,6 +954,10 @@
     grid-template-columns: 1fr;
   }
 
+  .inlineGrid {
+    grid-template-columns: 1fr;
+  }
+
   .cardWide {
     grid-column: auto;
   }
@@ -555,5 +971,12 @@
   .preview button {
     grid-column: 1 / -1;
     width: 100%;
+  }
+
+  .profileIdentity,
+  .sectionActions,
+  .integrationHeader {
+    align-items: flex-start;
+    flex-direction: column;
   }
 }
