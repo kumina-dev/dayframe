@@ -33,6 +33,7 @@ export interface LocalCalendar {
 interface CalendarEventBase {
   id: string
   calendarId: string
+  externalUid?: string
   title: string
   description?: string
   location?: string

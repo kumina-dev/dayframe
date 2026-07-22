@@ -2,6 +2,7 @@ import {
   Bell,
   CalendarClock,
   CreditCard,
+  Database,
   Globe2,
   Layers3,
   Link2,
@@ -11,6 +12,10 @@ import {
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 
+import type {
+  BackupRestoreSummary,
+  IcsImportSummary,
+} from '../../lib/dataPortability'
 import type {
   CalendarUpdate,
   DayframeSettings,
@@ -29,6 +34,7 @@ import { AppearanceSettings } from './sections/AppearanceSettings'
 import { BillingSettings } from './sections/BillingSettings'
 import { CalendarDefaultsSettings } from './sections/CalendarDefaultsSettings'
 import { CalendarDisplaySettings } from './sections/CalendarDisplaySettings'
+import { DataSettings } from './sections/DataSettings'
 import { IntegrationSettings } from './sections/IntegrationSettings'
 import { NotificationSettings } from './sections/NotificationSettings'
 import { RegionSettings } from './sections/RegionSettings'
@@ -43,6 +49,7 @@ type SettingsSection =
   | 'notifications'
   | 'account'
   | 'integrations'
+  | 'data'
   | 'billing'
 
 interface SettingsSheetProps {
@@ -53,8 +60,21 @@ interface SettingsSheetProps {
   settings: DayframeSettings
   subscription: LocalSubscription
   onClose: () => void
+  onExportBackup: () => Promise<void>
+  onExportCalendar: (
+    calendarId: string,
+  ) => Promise<void>
+  onImportCalendar: (
+    file: File,
+    calendarId: string,
+  ) => Promise<IcsImportSummary>
+  onRestoreBackup: (
+    file: File,
+  ) => Promise<BackupRestoreSummary>
   onSendDemoNotification: () => Promise<void>
-  onUpdate: (changes: DayframeSettingsUpdate) => Promise<void>
+  onUpdate: (
+    changes: DayframeSettingsUpdate,
+  ) => Promise<void>
   onUpdateCalendar: (
     calendarId: string,
     changes: CalendarUpdate,
@@ -120,6 +140,12 @@ const settingsSections: Array<{
     icon: Link2,
   },
   {
+    id: 'data',
+    label: 'Data and files',
+    description: 'Import, export, backup',
+    icon: Database,
+  },
+  {
     id: 'billing',
     label: 'Billing',
     description: 'Simulated plan',
@@ -135,6 +161,10 @@ export function SettingsSheet({
   settings,
   subscription,
   onClose,
+  onExportBackup,
+  onExportCalendar,
+  onImportCalendar,
+  onRestoreBackup,
   onSendDemoNotification,
   onUpdate,
   onUpdateCalendar,
@@ -142,9 +172,15 @@ export function SettingsSheet({
   onUpdateProfile,
   onUpdateSubscription,
 }: SettingsSheetProps) {
-  const [activeSection, setActiveSection] =
-    useState<SettingsSection>('appearance')
-  const [error, setError] = useState('')
+  const [
+    activeSection,
+    setActiveSection,
+  ] = useState<SettingsSection>(
+    'appearance'
+  )
+
+  const [error, setError] =
+    useState('')
 
   useEffect(() => {
     if (!open) {
@@ -183,8 +219,14 @@ export function SettingsSheet({
     >
       <header className={styles.header}>
         <div>
-          <p className={styles.eyebrow}>Local preferences</p>
-          <h2 className={styles.heading} id="settings-title">
+          <p className={styles.eyebrow}>
+            Local preferences
+          </p>
+
+          <h2
+            className={styles.heading}
+            id="settings-title"
+          >
             Settings
           </h2>
         </div>
@@ -196,7 +238,10 @@ export function SettingsSheet({
           title="Close settings"
           onClick={closeSettings}
         >
-          <X size={19} strokeWidth={1.8} />
+          <X
+            size={19}
+            strokeWidth={1.8}
+          />
         </button>
       </header>
 
@@ -206,42 +251,78 @@ export function SettingsSheet({
             className={styles.navigation}
             aria-label="Settings sections"
           >
-            {settingsSections.map((section) => {
-              const Icon = section.icon
-              const isActive = activeSection === section.id
+            {settingsSections.map(
+              (section) => {
+                const Icon =
+                  section.icon
 
-              return (
-                <button
-                  className={`${styles.navigationButton} ${
-                    isActive ? styles.navigationButtonActive : ''
-                  }`}
-                  type="button"
-                  key={section.id}
-                  aria-current={isActive ? 'page' : undefined}
-                  onClick={() => {
-                    setError('')
-                    setActiveSection(section.id)
-                  }}
-                >
-                  <Icon size={17} strokeWidth={1.8} />
+                const isActive =
+                  activeSection ===
+                  section.id
 
-                  <span>
-                    <strong>{section.label}</strong>
-                    <small>{section.description}</small>
-                  </span>
-                </button>
-              )
-            })}
+                return (
+                  <button
+                    className={`${
+                      styles.navigationButton
+                    } ${
+                      isActive
+                        ? styles.navigationButtonActive
+                        : ''
+                    }`}
+                    type="button"
+                    key={section.id}
+                    aria-current={
+                      isActive
+                        ? 'page'
+                        : undefined
+                    }
+                    onClick={() => {
+                      setError('')
+                      setActiveSection(
+                        section.id,
+                      )
+                    }}
+                  >
+                    <Icon
+                      size={17}
+                      strokeWidth={1.8}
+                    />
+
+                    <span>
+                      <strong>
+                        {section.label}
+                      </strong>
+
+                      <small>
+                        {
+                          section.description
+                        }
+                      </small>
+                    </span>
+                  </button>
+                )
+              },
+            )}
           </nav>
 
-          <p className={styles.localNotice}>
-            Settings and demo states are stored only in this browser.
+          <p
+            className={
+              styles.localNotice
+            }
+          >
+            Settings and demo states are
+            stored only in this browser.
           </p>
         </div>
 
         <main className={styles.content}>
-          <div className={styles.contentInner}>
-            {activeSection === 'appearance' ? (
+          <div
+            className={
+              styles.contentInner
+            }
+          >
+            {activeSection ===
+            'appearance' ? (
               <AppearanceSettings
                 settings={settings}
                 onError={setError}
@@ -249,7 +330,8 @@ export function SettingsSheet({
               />
             ) : null}
 
-            {activeSection === 'calendar' ? (
+            {activeSection ===
+            'calendar' ? (
               <CalendarDisplaySettings
                 calendars={calendars}
                 settings={settings}
@@ -258,15 +340,19 @@ export function SettingsSheet({
               />
             ) : null}
 
-            {activeSection === 'calendars' ? (
+            {activeSection ===
+            'calendars' ? (
               <CalendarDefaultsSettings
                 calendars={calendars}
                 onError={setError}
-                onUpdateCalendar={onUpdateCalendar}
+                onUpdateCalendar={
+                  onUpdateCalendar
+                }
               />
             ) : null}
 
-            {activeSection === 'region' ? (
+            {activeSection ===
+            'region' ? (
               <RegionSettings
                 settings={settings}
                 onError={setError}
@@ -274,43 +360,89 @@ export function SettingsSheet({
               />
             ) : null}
 
-            {activeSection === 'notifications' ? (
+            {activeSection ===
+            'notifications' ? (
               <NotificationSettings
                 settings={settings}
                 onError={setError}
-                onSendDemoNotification={onSendDemoNotification}
+                onSendDemoNotification={
+                  onSendDemoNotification
+                }
                 onUpdate={onUpdate}
               />
             ) : null}
 
-            {activeSection === 'account' ? (
+            {activeSection ===
+            'account' ? (
               <AccountSettings
                 profile={profile}
                 onError={setError}
-                onUpdateProfile={onUpdateProfile}
+                onUpdateProfile={
+                  onUpdateProfile
+                }
               />
             ) : null}
 
-            {activeSection === 'integrations' ? (
+            {activeSection ===
+            'integrations' ? (
               <IntegrationSettings
-                integrations={integrations}
-                language={settings.language}
-                profileEmail={profile.email}
+                integrations={
+                  integrations
+                }
+                language={
+                  settings.language
+                }
+                profileEmail={
+                  profile.email
+                }
                 onError={setError}
-                onUpdateIntegration={onUpdateIntegration}
+                onUpdateIntegration={
+                  onUpdateIntegration
+                }
               />
             ) : null}
 
-            {activeSection === 'billing' ? (
-              <BillingSettings
-                subscription={subscription}
+            {activeSection ===
+            'data' ? (
+              <DataSettings
+                calendars={calendars}
+                defaultCalendarId={
+                  settings.defaultCalendarId
+                }
                 onError={setError}
-                onUpdateSubscription={onUpdateSubscription}
+                onExportBackup={
+                  onExportBackup
+                }
+                onExportCalendar={
+                  onExportCalendar
+                }
+                onImportCalendar={
+                  onImportCalendar
+                }
+                onRestoreBackup={
+                  onRestoreBackup
+                }
+              />
+            ) : null}
+
+            {activeSection ===
+            'billing' ? (
+              <BillingSettings
+                subscription={
+                  subscription
+                }
+                onError={setError}
+                onUpdateSubscription={
+                  onUpdateSubscription
+                }
               />
             ) : null}
 
             {error ? (
-              <p className={styles.error} role="alert">
+              <p
+                className={styles.error}
+                role="alert"
+              >
                 {error}
               </p>
             ) : null}

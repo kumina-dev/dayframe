@@ -137,6 +137,7 @@ export function createCalendarEventRecord(
   const baseEvent = {
     id: existingEvent?.id ?? crypto.randomUUID(),
     calendarId: draft.calendarId,
+    externalUid: existingEvent?.externalUid,
     title: draft.title.trim(),
     description: draft.description?.trim() || undefined,
     location: draft.location?.trim() || undefined,
