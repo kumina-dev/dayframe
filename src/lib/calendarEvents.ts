@@ -1,5 +1,6 @@
 import {
   addDays,
+  addMinutes,
   eachDayOfInterval,
   format,
   parseISO,
@@ -13,6 +14,7 @@ import type {
   CalendarEvent,
   CalendarEventDraft,
   LocalCalendar,
+  ReminderMinutes,
   TimeFormat,
 } from '../types/calendar'
 
@@ -42,15 +44,25 @@ export function createEmptyEventDraft(
   date: string,
   calendar: LocalCalendar,
 ): CalendarEventDraft {
+  const startTime = '09:00'
+  const endTime = format(
+    addMinutes(
+      parseISO(`2000-01-01T${startTime}:00`),
+      calendar.defaultEventDuration,
+    ),
+    'HH:mm',
+  )
+
   return {
     calendarId: calendar.id,
     title: '',
     allDay: true,
     startDate: date,
     endDate: date,
-    startTime: '09:00',
-    endTime: '10:00',
+    startTime,
+    endTime,
     timeZone: calendar.timeZone,
+    reminderMinutes: calendar.defaultReminderMinutes,
   }
 }
 
@@ -129,6 +141,7 @@ export function createCalendarEventRecord(
     description: draft.description?.trim() || undefined,
     location: draft.location?.trim() || undefined,
     color: draft.color,
+    reminderMinutes: draft.reminderMinutes,
     createdAt: existingEvent?.createdAt ?? now,
     updatedAt: now,
   }
@@ -167,6 +180,7 @@ export function createCalendarEventRecord(
 export function calendarEventToDraft(
   event: CalendarEvent,
   fallbackTimeZone = getBrowserTimeZone(),
+  fallbackReminderMinutes: ReminderMinutes = 10,
 ): CalendarEventDraft {
   if (event.allDay) {
     return {
@@ -184,6 +198,8 @@ export function calendarEventToDraft(
       endTime: '10:00',
       timeZone: fallbackTimeZone,
       color: event.color,
+      reminderMinutes:
+        event.reminderMinutes ?? fallbackReminderMinutes,
     }
   }
 
@@ -215,6 +231,8 @@ export function calendarEventToDraft(
     ),
     timeZone: event.timeZone,
     color: event.color,
+    reminderMinutes:
+      event.reminderMinutes ?? fallbackReminderMinutes,
   }
 }
 

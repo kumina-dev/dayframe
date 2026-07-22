@@ -12,14 +12,20 @@ import Dexie, {
 
 import { getBrowserTimeZone } from '../lib/calendarEvents'
 import type {
+  AppNotification,
   CalendarEvent,
   CalendarEventColor,
   DayframeSettings,
   LocalCalendar,
+  LocalIntegration,
+  LocalProfile,
+  LocalSubscription,
 } from '../types/calendar'
 
 export const defaultCalendarId = 'calendar-default'
 export const settingsId = 'preferences'
+export const localProfileId = 'local-profile'
+export const localSubscriptionId = 'local-subscription'
 
 interface LegacyCalendarEvent {
   id: string
@@ -40,6 +46,8 @@ function createDefaultCalendar(): LocalCalendar {
     name: 'Personal',
     color: 'periwinkle',
     timeZone: getBrowserTimeZone(),
+    defaultEventDuration: 60,
+    defaultReminderMinutes: 10,
     isVisible: true,
     createdAt: timestamp,
     updatedAt: timestamp,
@@ -59,6 +67,56 @@ export function createDefaultSettings(): DayframeSettings {
     showWeekNumbers: false,
     defaultCalendarId,
     displayTimeZone: getBrowserTimeZone(),
+    language: 'en',
+    notificationsEnabled: true,
+    notificationSoundEnabled: false,
+    defaultReminderMinutes: 10,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  }
+}
+
+export function createDefaultProfile(): LocalProfile {
+  const timestamp = new Date().toISOString()
+
+  return {
+    id: localProfileId,
+    displayName: 'Local User',
+    email: 'local@dayframe.demo',
+    isSignedIn: true,
+    createdAt: timestamp,
+    updatedAt: timestamp,
+  }
+}
+
+export function createDefaultIntegrations(): LocalIntegration[] {
+  const timestamp = new Date().toISOString()
+
+  return [
+    {
+      id: 'google-calendar',
+      provider: 'google-calendar',
+      status: 'disconnected',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+    {
+      id: 'outlook-calendar',
+      provider: 'outlook-calendar',
+      status: 'disconnected',
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    },
+  ]
+}
+
+export function createDefaultSubscription(): LocalSubscription {
+  const timestamp = new Date().toISOString()
+
+  return {
+    id: localSubscriptionId,
+    plan: 'free',
+    status: 'active',
     createdAt: timestamp,
     updatedAt: timestamp,
   }
@@ -137,6 +195,10 @@ class DayframeDatabase extends Dexie {
   calendars!: Table<LocalCalendar, string>
   events!: Table<CalendarEvent, string>
   settings!: Table<DayframeSettings, string>
+  profile!: Table<LocalProfile, string>
+  notifications!: Table<AppNotification, string>
+  integrations!: Table<LocalIntegration, string>
+  subscription!: Table<LocalSubscription, string>
 
   constructor() {
     super('dayframe')
@@ -168,6 +230,18 @@ class DayframeDatabase extends Dexie {
         'id, calendarId, allDay, startDate, startsAt, updatedAt',
       settings: 'id',
     })
+
+    this.version(5).stores({
+      calendars:
+        'id, name, color, timeZone, createdAt',
+      events:
+        'id, calendarId, allDay, startDate, startsAt, updatedAt',
+      settings: 'id',
+      profile: 'id',
+      notifications: 'id, createdAt',
+      integrations: 'id, status',
+      subscription: 'id',
+    })
   }
 }
 
@@ -178,21 +252,81 @@ export async function ensureInitialData() {
     'rw',
     dayframeDb.calendars,
     dayframeDb.settings,
+    dayframeDb.profile,
+    dayframeDb.integrations,
+    dayframeDb.subscription,
     async () => {
-      const [calendarCount, settings] = await Promise.all([
-        dayframeDb.calendars.count(),
+      const [
+        calendars,
+        settings,
+        profile,
+        integrations,
+        subscription,
+      ] = await Promise.all([
+        dayframeDb.calendars.toArray(),
         dayframeDb.settings.get(settingsId),
+        dayframeDb.profile.get(localProfileId),
+        dayframeDb.integrations.toArray(),
+        dayframeDb.subscription.get(localSubscriptionId),
       ])
 
-      if (calendarCount === 0) {
+      if (calendars.length === 0) {
         await dayframeDb.calendars.add(
           createDefaultCalendar(),
+        )
+      } else {
+        await Promise.all(
+          calendars.map((calendar) => {
+            const changes: Partial<LocalCalendar> = {}
+
+            if (calendar.defaultEventDuration === undefined) {
+              changes.defaultEventDuration = 60
+            }
+
+            if (calendar.defaultReminderMinutes === undefined) {
+              changes.defaultReminderMinutes = 10
+            }
+
+            return Object.keys(changes).length > 0
+              ? dayframeDb.calendars.update(calendar.id, changes)
+              : Promise.resolve(0)
+          }),
         )
       }
 
       if (!settings) {
         await dayframeDb.settings.add(
           createDefaultSettings(),
+        )
+      } else {
+        await dayframeDb.settings.put({
+          ...createDefaultSettings(),
+          ...settings,
+        })
+      }
+
+      if (!profile) {
+        await dayframeDb.profile.add(createDefaultProfile())
+      }
+
+      const integrationIds = new Set(
+        integrations.map((integration) => integration.id),
+      )
+
+      const missingIntegrations =
+        createDefaultIntegrations().filter(
+          (integration) => !integrationIds.has(integration.id),
+        )
+
+      if (missingIntegrations.length > 0) {
+        await dayframeDb.integrations.bulkAdd(
+          missingIntegrations,
+        )
+      }
+
+      if (!subscription) {
+        await dayframeDb.subscription.add(
+          createDefaultSubscription(),
         )
       }
     },
